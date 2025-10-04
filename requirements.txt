@@ -1,0 +1,37 @@
+# Core Data Science Libraries
+pandas
+numpy
+matplotlib
+seaborn
+plotly
+
+# Machine Learning Libraries
+scikit-learn
+xgboost
+lightgbm
+tensorflow
+keras
+
+# Web Framework
+streamlit
+flask
+fastapi
+uvicorn
+
+# Data Processing
+scipy
+joblib
+imbalanced-learn
+
+# Visualization
+plotly-express
+bokeh
+
+# Utilities
+requests
+tqdm
+python-dotenv
+
+# Jupyter
+jupyter
+ipykernel
