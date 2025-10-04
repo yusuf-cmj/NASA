@@ -26,32 +26,62 @@ def show_paginated_table(df, page_size=100, key_prefix="table"):
     end_idx = min(start_idx + page_size, total_rows)
     
     # Show pagination info
-    col1, col2, col3 = st.columns([2, 1, 1])
+    st.info(f"Showing rows {start_idx + 1}-{end_idx} of {total_rows} total rows")
     
-    with col1:
-        st.info(f"Showing rows {start_idx + 1}-{end_idx} of {total_rows} total rows")
-    
-    with col2:
-        if st.button("Previous", key=f"{key_prefix}_prev", disabled=current_page == 0):
-            st.query_params[page_param] = str(current_page - 1)
-            st.rerun()
-    
-    with col3:
-        if st.button("Next", key=f"{key_prefix}_next", disabled=current_page >= total_pages - 1):
-            st.query_params[page_param] = str(current_page + 1)
-            st.rerun()
-    
-    # Show page selector
+    # Show page selector - force re-render by using current_page in key
     if total_pages > 1:
         page_options = list(range(total_pages))
-        selected_page = st.selectbox(
-            f"Go to page (1-{total_pages}):",
-            page_options,
-            index=current_page,
-            key=f"{key_prefix}_page_selector",
-            format_func=lambda x: f"Page {x + 1}"
-        )
         
+        # Use current_page in key to force selectbox re-render
+        selectbox_key = f"{key_prefix}_page_selector_{current_page}"
+        
+        # Create columns for dropdown and buttons - same row
+        dropdown_col, btn_col = st.columns([2, 1])
+        
+        with dropdown_col:
+            selected_page = st.selectbox(
+                f"Go to page (1-{total_pages}):",
+                page_options,
+                index=current_page,
+                key=selectbox_key,
+                format_func=lambda x: f"Page {x + 1}"
+            )
+        
+        with btn_col:
+            # Butonları yan yana koy - dropdown ile aynı satırda
+            btn_col1, btn_col2 = st.columns(2)
+            
+            # CSS ile butonları dropdown menüsüne hizala (başlık değil)
+            st.markdown("""
+            <style>
+            .pagination-buttons {
+                display: flex;
+                align-items: center;
+                height: 100%;
+                gap: 0.5rem;
+            }
+            /* Butonları dropdown menüsüne hizala - başlık değil */
+            .stSelectbox > div > div > div {
+                display: flex;
+                align-items: center;
+            }
+            /* Butonları dropdown input alanına hizala */
+            .stButton > button {
+                margin-top: 1.7rem;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            with btn_col1:
+                if st.button("Previous", key=f"{key_prefix}_prev2", disabled=current_page == 0):
+                    st.query_params[page_param] = str(current_page - 1)
+                    st.rerun()
+            with btn_col2:
+                if st.button("Next", key=f"{key_prefix}_next2", disabled=current_page >= total_pages - 1):
+                    st.query_params[page_param] = str(current_page + 1)
+                    st.rerun()
+        
+        # Update URL when selectbox changes
         if selected_page != current_page:
             st.query_params[page_param] = str(selected_page)
             st.rerun()
@@ -61,7 +91,7 @@ def show_paginated_table(df, page_size=100, key_prefix="table"):
     
     return current_data
 
-def show_prediction_result(prediction, confidence, dark_mode=False):
+def show_prediction_result(prediction, confidence, dark_mode=False):  # noqa: ARG001
     """Show prediction result with styling"""
     if prediction == 'CONFIRMED':
         css_class = 'confirmed'

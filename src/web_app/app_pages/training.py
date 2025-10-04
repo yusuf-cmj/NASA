@@ -7,8 +7,10 @@ import pandas as pd
 import numpy as np
 import os
 import sys
+from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import PERFORMANCE_METRICS
+from models.model_manager import save_model
 
 def detect_nasa_format(df):
     """Detect NASA dataset format automatically"""
@@ -447,34 +449,282 @@ def training_page(model, scaler, label_encoder):
                                 st.metric("Data Type", "Mixed")
                             st.metric("Data Quality", "✅ Valid")
                         
+                        # Model naming section
+                        st.markdown("#### 🏷️ Model Naming")
+                        col1, col2 = st.columns([2, 1])
+                        
+                        with col1:
+                            # Generate default model name with timestamp
+                            default_name = f"retrained_model_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}"
+                            new_model_name = st.text_input(
+                                "New Model Name:",
+                                value=default_name,
+                                help="Enter a unique name for your retrained model",
+                                key="retrain_model_name_input"
+                            )
+                        
+                        with col2:
+                            st.markdown("**Current Model:**")
+                            current_model_name = st.session_state.get('active_model', 'Default Model')
+                            st.code(current_model_name)
+                        
+                        # Model description
+                        model_description = st.text_area(
+                            "Model Description (Optional):",
+                            placeholder="Describe what makes this retrained model special...",
+                            help="Optional description for your retrained model",
+                            key="retrain_model_description_input"
+                        )
+                        
+                        # Validate model name
+                        if new_model_name:
+                            # Check for invalid characters
+                            invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+                            has_invalid = any(char in new_model_name for char in invalid_chars)
+                            
+                            if has_invalid:
+                                st.error(f"❌ **Invalid characters in model name!** Please avoid: {', '.join(invalid_chars)}")
+                            elif len(new_model_name.strip()) == 0:
+                                st.error("❌ **Model name cannot be empty!**")
+                            else:
+                                st.success(f"✅ **Model name valid:** `{new_model_name}`")
+                        
                         # Retraining button
                         data_prepared = st.session_state.get('data_prepared', False)
+                        model_name_valid = new_model_name and not has_invalid and len(new_model_name.strip()) > 0
                         
                         if not data_prepared:
                             st.warning("⚠️ **Please prepare binary classification data first!**")
                         
-                        if st.button("🚀 Start Retraining", type="primary", disabled=not data_prepared):
+                        if not model_name_valid:
+                            st.warning("⚠️ **Please enter a valid model name!**")
+                        
+                        if st.button("🚀 Start Retraining", type="primary", disabled=not (data_prepared and model_name_valid)):
+                            # Get model name and description from widgets
+                            final_model_name = new_model_name
+                            final_model_description = model_description
+                            
                             with st.spinner("🔄 Retraining model..."):
-                                # Simulate training process
-                                import time
-                                time.sleep(2)
-                                st.success("Model retrained successfully!")
+                                progress_bar = st.progress(0)
+                                status_text = st.empty()
                                 
-                                # Show retraining results
-                                st.markdown("#### 📊 Retraining Results")
-                                
-                                col1, col2, col3 = st.columns(3)
-                                
-                                with col1:
-                                    st.metric("New Accuracy", "89.15%", delta="+0.94%")
-                                
-                                with col2:
-                                    st.metric("ROC-AUC", "0.9512", delta="+0.0064")
-                                
-                                with col3:
-                                    st.metric("Training Data", f"{len(mapped_df):,}", delta="+New Records")
-                                
-                                st.success("✅ **Model retrained successfully with improved performance!**")
+                                try:
+                                    # Step 1: Load NASA dataset
+                                    status_text.text("Loading NASA dataset...")
+                                    progress_bar.progress(10)
+                                    
+                                    current_dir = os.path.dirname(os.path.abspath(__file__))
+                                    project_root = os.path.join(current_dir, '..', '..', '..')
+                                    nasa_data_path = os.path.join(project_root, 'data', 'processed', 'ml_ready_data.csv')
+                                    
+                                    if not os.path.exists(nasa_data_path):
+                                        st.error("❌ NASA dataset not found!")
+                                        return
+                                    
+                                    nasa_data = pd.read_csv(nasa_data_path)
+                                    
+                                    # Step 2: Use prepared data and filter NASA data for binary classification
+                                    status_text.text("Preparing binary classification data...")
+                                    progress_bar.progress(20)
+                                    
+                                    prepared_data = st.session_state.get('prepared_data', mapped_df)
+                                    
+                                    # Filter NASA data to remove CANDIDATE entries for binary classification
+                                    nasa_binary_mask = nasa_data['disposition'].isin(['CONFIRMED', 'FALSE_POSITIVE'])
+                                    nasa_binary_data = nasa_data[nasa_binary_mask]
+                                    
+                                    # Combine datasets
+                                    combined_data = pd.concat([nasa_binary_data, prepared_data], ignore_index=True)
+                                    
+                                    # Step 3: Preprocessing
+                                    status_text.text("Preprocessing data...")
+                                    progress_bar.progress(30)
+                                    
+                                    # Feature extraction
+                                    required_features = ['orbital_period', 'transit_duration', 'planet_radius', 
+                                                       'stellar_temp', 'stellar_radius', 'transit_depth']
+                                    
+                                    X = combined_data[required_features].copy()
+                                    y = combined_data['disposition'].copy()
+                                    
+                                    # Handle missing values
+                                    X = X.fillna(X.median())
+                                    
+                                    # Remove outliers (IQR method)
+                                    outlier_removed = 0
+                                    for col in X.columns:
+                                        Q1 = X[col].quantile(0.25)
+                                        Q3 = X[col].quantile(0.75)
+                                        IQR = Q3 - Q1
+                                        mask = (X[col] >= Q1 - 1.5*IQR) & (X[col] <= Q3 + 1.5*IQR)
+                                        before_count = len(X)
+                                        X = X[mask]
+                                        y = y[mask]
+                                        outlier_removed += before_count - len(X)
+                                    
+                                    # Step 4: Encoding and Scaling
+                                    status_text.text("Encoding and scaling features...")
+                                    progress_bar.progress(40)
+                                    
+                                    from sklearn.preprocessing import StandardScaler, LabelEncoder
+                                    from sklearn.model_selection import train_test_split
+                                    from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, VotingClassifier
+                                    from sklearn.linear_model import LogisticRegression
+                                    from sklearn.metrics import accuracy_score, roc_auc_score, classification_report
+                                    import xgboost as xgb
+                                    
+                                    # Label encoding for binary classification
+                                    label_encoder_new = LabelEncoder()
+                                    y_encoded = label_encoder_new.fit_transform(y)
+                                    
+                                    # Feature scaling
+                                    scaler_new = StandardScaler()
+                                    X_scaled = scaler_new.fit_transform(X)
+                                    
+                                    # Step 5: Train-test split
+                                    status_text.text("Splitting data...")
+                                    progress_bar.progress(50)
+                                    
+                                    X_train, X_test, y_train, y_test = train_test_split(
+                                        X_scaled, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded
+                                    )
+                                    
+                                    # Step 6: Train Random Forest
+                                    status_text.text("Training Random Forest...")
+                                    progress_bar.progress(60)
+                                    
+                                    rf_model = RandomForestClassifier(
+                                        n_estimators=200,
+                                        max_depth=15,
+                                        min_samples_split=3,
+                                        min_samples_leaf=1,
+                                        random_state=42,
+                                        n_jobs=-1,
+                                        class_weight='balanced'
+                                    )
+                                    rf_model.fit(X_train, y_train)
+                                    
+                                    # Step 7: Train XGBoost
+                                    status_text.text("Training XGBoost...")
+                                    progress_bar.progress(70)
+                                    
+                                    xgb_model = xgb.XGBClassifier(
+                                        n_estimators=200,
+                                        max_depth=8,
+                                        learning_rate=0.1,
+                                        subsample=0.9,
+                                        colsample_bytree=0.9,
+                                        random_state=42,
+                                        eval_metric='logloss',
+                                        scale_pos_weight=1
+                                    )
+                                    xgb_model.fit(X_train, y_train)
+                                    
+                                    # Step 8: Train Extra Trees
+                                    status_text.text("Training Extra Trees...")
+                                    progress_bar.progress(80)
+                                    
+                                    et_model = ExtraTreesClassifier(
+                                        n_estimators=200,
+                                        max_depth=15,
+                                        min_samples_split=3,
+                                        min_samples_leaf=1,
+                                        random_state=42,
+                                        n_jobs=-1,
+                                        class_weight='balanced'
+                                    )
+                                    et_model.fit(X_train, y_train)
+                                    
+                                    # Step 9: Train Voting Ensemble
+                                    status_text.text("Training Voting Ensemble...")
+                                    progress_bar.progress(90)
+                                    
+                                    voting_model = VotingClassifier(
+                                        estimators=[
+                                            ('rf', rf_model),
+                                            ('xgb', xgb_model),
+                                            ('et', et_model)
+                                        ],
+                                        voting='soft'
+                                    )
+                                    voting_model.fit(X_train, y_train)
+                                    
+                                    # Step 10: Evaluation
+                                    status_text.text("Evaluating models...")
+                                    progress_bar.progress(95)
+                                    
+                                    # Evaluate voting ensemble (best model)
+                                    voting_pred = voting_model.predict(X_test)
+                                    voting_pred_proba = voting_model.predict_proba(X_test)[:, 1]
+                                    accuracy_new = accuracy_score(y_test, voting_pred)
+                                    roc_auc_new = roc_auc_score(y_test, voting_pred_proba)
+                                    
+                                    # Step 11: Save model
+                                    status_text.text("Saving retrained model...")
+                                    progress_bar.progress(98)
+                                    
+                                    # Create metadata
+                                    metadata = {
+                                        'name': final_model_name,
+                                        'description': final_model_description or f"Retrained model based on {current_model_name}",
+                                        'created_at': datetime.now().isoformat(),
+                                        'accuracy': accuracy_new,
+                                        'roc_auc': roc_auc_new,
+                                        'training_data_size': len(combined_data),
+                                        'user_data_size': len(prepared_data),
+                                        'base_model': current_model_name,
+                                        'features': required_features,
+                                        'classes': ['CONFIRMED', 'FALSE_POSITIVE']
+                                    }
+                                    
+                                    # Save model using model_manager
+                                    success = save_model(voting_model, scaler_new, label_encoder_new, metadata, final_model_name)
+                                    
+                                    if success:
+                                        # Step 12: Complete
+                                        progress_bar.progress(100)
+                                        status_text.text("✅ Retraining completed!")
+                                        
+                                        # Show results
+                                        st.success("✅ **Model retrained and saved successfully!**")
+                                        
+                                        # Show retraining results
+                                        st.markdown("#### 📊 Retraining Results")
+                                        
+                                        # Show model info
+                                        st.info(f"**Model Name:** {final_model_name}")
+                                        if final_model_description:
+                                            st.info(f"**Description:** {final_model_description}")
+                                        
+                                        col1, col2, col3 = st.columns(3)
+                                        
+                                        with col1:
+                                            st.metric("New Accuracy", f"{accuracy_new*100:.2f}%")
+                                        
+                                        with col2:
+                                            st.metric("ROC-AUC", f"{roc_auc_new:.4f}")
+                                        
+                                        with col3:
+                                            st.metric("Training Data", f"{len(combined_data):,}", delta=f"+{len(prepared_data):,} New Records")
+                                        
+                                        # Show model info
+                                        st.markdown("#### 💾 Saved Model Information")
+                                        st.info(f"**Model Name:** {final_model_name}")
+                                        st.info("**Saved Location:** `data/models/`")
+                                        st.info(f"**Base Model:** {current_model_name}")
+                                        
+                                        # Update session state
+                                        st.session_state['training_completed'] = True
+                                        st.session_state['new_model_name'] = final_model_name
+                                        
+                                        st.success(f"🎉 **Model '{final_model_name}' is now available in the Model Management section!**")
+                                        
+                                    else:
+                                        st.error("❌ **Failed to save model!** Please check file permissions.")
+                                        
+                                except Exception as e:
+                                    st.error(f"❌ **Retraining failed:** {str(e)}")
+                                    st.markdown("Please check your data and try again.")
                 
             except Exception as e:
                 st.error(f"❌ Error processing file: {e}")

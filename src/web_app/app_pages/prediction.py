@@ -148,5 +148,3 @@ def prediction_page(model, scaler, label_encoder):
                 
                 st.plotly_chart(fig, use_container_width=True)
             
-            st.markdown("### Feature Analysis")
-            st.markdown("Feature importance analysis will be available in future updates.")

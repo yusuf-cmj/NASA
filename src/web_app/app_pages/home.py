@@ -95,6 +95,3 @@ def home_page(model, scaler, label_encoder):
                         </div>
                         """, unsafe_allow_html=True)
     
-    st.markdown("---")
-    st.markdown("### Next Steps")
-    st.markdown("For detailed analysis with confidence intervals and feature explanations, use the **Single Prediction** page.")
