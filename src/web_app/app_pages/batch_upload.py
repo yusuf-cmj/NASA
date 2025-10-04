@@ -19,12 +19,12 @@ def highlight_predictions(row):
     
     if row['prediction'] == 'CONFIRMED':
         if dark_mode:
-            return ['background-color: #1e4d2b; color: #4ade80'] * len(row)
+            return ['background-color: #1DB954; color: #191414'] * len(row)
         else:
             return ['background-color: #bbf7d0; color: #166534'] * len(row)
     elif row['prediction'] == 'FALSE_POSITIVE':
         if dark_mode:
-            return ['background-color: #4c1d1d; color: #f87171'] * len(row)
+            return ['background-color: #e22134; color: #ffffff'] * len(row)
         else:
             return ['background-color: #fecaca; color: #991b1b'] * len(row)
     return [''] * len(row)
@@ -215,10 +215,11 @@ def batch_upload_page(model, scaler, label_encoder):
         """)
     
     # Show saved results if available (for pagination)
-    if 'batch_results' in st.session_state:
+    if 'batch_results' in st.session_state and uploaded_file is None:
         results_df = st.session_state['batch_results']
         
-        st.markdown("## Prediction Results")
+        st.markdown("## Previous Results")
+        st.info("Showing results from previous upload. Upload a new file to process new data.")
         
         # Summary statistics
         col1, col2, col3, col4 = st.columns(4)
@@ -237,45 +238,6 @@ def batch_upload_page(model, scaler, label_encoder):
         with col4:
             avg_confidence = results_df['confidence'].mean()
             st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
-        
-        # Confidence analysis
-        st.markdown("### Confidence Analysis")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Confidence distribution
-            fig_confidence = px.histogram(
-                results_df, 
-                x='confidence',
-                title="Confidence Distribution",
-                nbins=20,
-                color_discrete_sequence=['#1f77b4']
-            )
-            fig_confidence.update_layout(
-                xaxis_title="Confidence (%)",
-                yaxis_title="Count",
-                height=400
-            )
-            st.plotly_chart(fig_confidence, use_container_width=True, key="confidence_hist_saved")
-        
-        with col2:
-            # Confidence by prediction type
-            fig_box = px.box(
-                results_df,
-                x='prediction',
-                y='confidence',
-                title="Confidence by Prediction Type",
-                color='prediction',
-                color_discrete_map={'CONFIRMED': '#2E8B57', 'FALSE_POSITIVE': '#DC143C'}
-            )
-            fig_box.update_layout(height=400)
-            st.plotly_chart(fig_box, use_container_width=True, key="confidence_box_saved")
-        
-        # Confidence statistics
-        st.markdown("#### Confidence Statistics")
-        confidence_stats = results_df.groupby('prediction')['confidence'].agg(['mean', 'std', 'min', 'max']).round(1)
-        st.dataframe(confidence_stats)
         
         # Show paginated results
         st.markdown("### Detailed Results")

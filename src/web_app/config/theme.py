@@ -17,19 +17,32 @@ def get_theme_css(dark_mode=False):
     if dark_mode:
         return """
         <style>
+        /* Override Streamlit's default theme */
+        .stApp {
+            background-color: #191414 !important;
+        }
+        
+        .main .block-container {
+            background-color: #191414 !important;
+        }
+        
+        .stSidebar {
+            background-color: #191414 !important;
+        }
+        
         .sub-header {
             font-size: 1.5rem;
-            color: #90EE90;
+            color: #1DB954 !important;
             font-weight: bold;
             margin-bottom: 1rem;
         }
 
         .metrics-container {
-            background-color: #2d3748;
+            background-color: #191414 !important;
             padding: 1rem;
             border-radius: 0.5rem;
             margin: 1rem 0;
-            border: 1px solid #4a5568;
+            border: 1px solid #282828 !important;
         }
 
         .prediction-result {
@@ -42,15 +55,15 @@ def get_theme_css(dark_mode=False):
         }
 
         .confirmed {
-            background-color: #2d5016;
-            color: #90EE90;
-            border: 2px solid #4ade80;
+            background-color: #1DB954 !important;
+            color: #191414 !important;
+            border: 2px solid #1ed760 !important;
         }
 
         .false-positive {
-            background-color: #5c1a1a;
-            color: #fca5a5;
-            border: 2px solid #f87171;
+            background-color: #e22134 !important;
+            color: #ffffff !important;
+            border: 2px solid #ff6b6b !important;
         }
 
         .theme-toggle {
