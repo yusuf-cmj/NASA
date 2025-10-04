@@ -45,8 +45,6 @@ env/
 ehthumbs.db
 Thumbs.db
 
-# Streamlit
-.streamlit/
 
 # Model files (keep trained models)
 # *.pkl
