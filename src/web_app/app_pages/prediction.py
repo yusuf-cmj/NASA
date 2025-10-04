@@ -22,42 +22,48 @@ def prediction_page(model, scaler, label_encoder):
     st.markdown("## Input Parameters")
     
     with st.form("detailed_prediction"):
-        st.markdown("### Planetary Characteristics")
         col1, col2 = st.columns(2)
         
         with col1:
+            st.markdown("### Planetary Characteristics")
             orbital_period = st.number_input(
                 "Orbital Period (days)", 
                 min_value=0.1, max_value=1000.0, 
-                value=10.0, help="Time for planet to orbit its star"
+                value=10.0, step=0.000001, format="%.6f",
+                help="Time for planet to orbit its star (high precision)"
             )
             transit_duration = st.number_input(
                 "Transit Duration (hours)", 
                 min_value=0.1, max_value=50.0, 
-                value=3.0, help="Time planet passes in front of star"
+                value=3.0, step=0.000001, format="%.6f",
+                help="Time planet passes in front of star (high precision)"
             )
             planet_radius = st.number_input(
                 "Planet Radius (Earth radii)", 
                 min_value=0.1, max_value=50.0, 
-                value=2.0, help="Planet size relative to Earth"
+                value=2.0, step=0.000001, format="%.6f",
+                help="Planet size relative to Earth (high precision)"
             )
         
         with col2:
             st.markdown("### Stellar Characteristics")
             stellar_temp = st.number_input(
                 "Stellar Temperature (K)", 
-                min_value=2000, max_value=10000, 
-                value=5500, help="Star surface temperature"
+                min_value=2000.0, max_value=10000.0, 
+                value=5500.0, step=0.000001, format="%.6f",
+                help="Star surface temperature (high precision)"
             )
             stellar_radius = st.number_input(
                 "Stellar Radius (Solar radii)", 
                 min_value=0.1, max_value=50.0, 
-                value=1.0, help="Star size relative to Sun"
+                value=1.0, step=0.000001, format="%.6f",
+                help="Star size relative to Sun (high precision)"
             )
             transit_depth = st.number_input(
                 "Transit Depth (parts per million)", 
-                min_value=1, max_value=100000, 
-                value=1000, help="How much star light is blocked"
+                min_value=1.0, max_value=100000.0, 
+                value=1000.0, step=0.000001, format="%.6f",
+                help="How much star light is blocked (high precision)"
             )
         
         submitted = st.form_submit_button("Analyze Candidate", use_container_width=True, type="primary")
