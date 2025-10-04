@@ -6,10 +6,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,11 +14,12 @@ from config.settings import PERFORMANCE_METRICS, DATASET_INFO
 def analytics_dashboard(model, scaler, label_encoder):
     """Advanced analytics dashboard"""
     
-    st.markdown("# 📊 Analytics Dashboard")
+    st.markdown("# Analytics Dashboard")
+    st.markdown("Comprehensive analysis of model performance and data insights")
+    st.markdown("---")
     
-    st.markdown("## 🎯 Model Performance Overview")
+    st.markdown("## Performance Metrics")
     
-    # Performance metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -37,13 +34,13 @@ def analytics_dashboard(model, scaler, label_encoder):
     with col4:
         st.metric("Precision", f"{PERFORMANCE_METRICS['precision']}", delta="+0.18")
     
-    st.markdown("## 📈 Dataset Statistics")
+    st.markdown("## Dataset Statistics")
     
     # Dataset overview
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("### 🔬 Training Data Composition")
+        st.markdown("### Training Data Composition")
         
         dataset_data = {
             'Mission': ['Kepler', 'TESS', 'K2'],
@@ -59,7 +56,7 @@ def analytics_dashboard(model, scaler, label_encoder):
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.markdown("### 📊 Classification Distribution")
+        st.markdown("### Classification Distribution")
         
         # Simulated classification distribution
         classification_data = {
@@ -78,10 +75,10 @@ def analytics_dashboard(model, scaler, label_encoder):
         fig.update_layout(showlegend=False)
         st.plotly_chart(fig, use_container_width=True)
     
-    st.markdown("## 🔍 Feature Analysis")
+    st.markdown("## Feature Analysis")
     
     # Feature importance (simulated)
-    st.markdown("### 📊 Feature Importance")
+    st.markdown("### Feature Importance")
     
     feature_importance = {
         'Feature': ['Transit Depth', 'Orbital Period', 'Planet Radius', 'Stellar Temperature', 'Transit Duration', 'Stellar Radius'],
@@ -100,12 +97,12 @@ def analytics_dashboard(model, scaler, label_encoder):
     fig.update_layout(height=400)
     st.plotly_chart(fig, use_container_width=True)
     
-    st.markdown("## 🎯 Model Architecture")
+    st.markdown("## Model Architecture")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("### 🤖 Ensemble Components")
+        st.markdown("### Ensemble Components")
         
         components = {
             'Model': ['Random Forest', 'XGBoost', 'Extra Trees', 'Meta-Learner'],
@@ -124,7 +121,7 @@ def analytics_dashboard(model, scaler, label_encoder):
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.markdown("### 📈 Performance Evolution")
+        st.markdown("### Performance Evolution")
         
         # Simulated performance over time
         performance_data = {
@@ -142,7 +139,7 @@ def analytics_dashboard(model, scaler, label_encoder):
         fig.update_layout(yaxis_title="Accuracy", xaxis_title="Training Epoch")
         st.plotly_chart(fig, use_container_width=True)
     
-    st.markdown("## 🔬 Scientific Insights")
+    st.markdown("## Scientific Insights")
     
     st.markdown("""
     ### Key Findings:

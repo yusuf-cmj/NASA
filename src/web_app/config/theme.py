@@ -59,6 +59,16 @@ def get_theme_css(dark_mode=False):
             right: 20px;
             z-index: 1000;
         }
+        
+        /* Sidebar button text alignment */
+        .stSidebar .stButton > button {
+            text-align: left !important;
+            justify-content: flex-start !important;
+        }
+        
+        .stSidebar .stButton > button > div {
+            text-align: left !important;
+        }
         </style>
         """
     else:
@@ -105,6 +115,16 @@ def get_theme_css(dark_mode=False):
             right: 20px;
             z-index: 1000;
         }
+        
+        /* Sidebar button text alignment */
+        .stSidebar .stButton > button {
+            text-align: left !important;
+            justify-content: flex-start !important;
+        }
+        
+        .stSidebar .stButton > button > div {
+            text-align: left !important;
+        }
         </style>
         """
 
@@ -114,6 +134,6 @@ def apply_theme():
     st.markdown(get_theme_css(dark_mode), unsafe_allow_html=True)
     
     # Theme toggle button
-    if st.button("🌙" if not dark_mode else "☀️", key="theme_toggle", help="Toggle theme"):
+    if st.button("Dark" if not dark_mode else "Light", key="theme_toggle", help="Toggle theme"):
         toggle_theme()
         st.rerun()

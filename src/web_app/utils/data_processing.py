@@ -113,7 +113,7 @@ def show_mapping_interface(df, format_type, auto_mapping, include_disposition=Fa
     """Show interactive column mapping interface"""
     
     # Show detected format
-    st.info(f"📋 Detected format: **{format_type.upper()}**")
+    st.info(f"Detected format: **{format_type.upper()}**")
     
     # Show available columns
     st.write("**Available columns in your data:**")
@@ -162,7 +162,7 @@ def validate_and_process_mapping(df, final_mapping):
         missing_features = [f for f in required_features if f not in final_mapping]
         
         if missing_features:
-            st.error(f"❌ Missing required features: {', '.join(missing_features)}")
+            st.error(f"Missing required features: {', '.join(missing_features)}")
             return None
         
         # Create processed dataframe
@@ -177,17 +177,17 @@ def validate_and_process_mapping(df, final_mapping):
         # Check for missing values
         missing_count = processed_df.isnull().sum().sum()
         if missing_count > 0:
-            st.warning(f"⚠️ Found {missing_count} missing values. These will be handled during processing.")
+            st.warning(f"Found {missing_count} missing values. These will be handled during processing.")
         
         # Show preview
-        st.success("✅ Mapping validated successfully!")
+        st.success("Mapping validated successfully!")
         st.write("**Preview of mapped data:**")
         st.dataframe(processed_df.head())
         
         return processed_df
         
     except Exception as e:
-        st.error(f"❌ Error processing mapping: {e}")
+        st.error(f"Error processing mapping: {e}")
         return None
 
 def process_predictions(mapped_df, model, scaler, label_encoder):

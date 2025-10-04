@@ -3,7 +3,6 @@ Model training page for NASA Exoplanet Detection Web App
 """
 
 import streamlit as st
-import streamlit as st
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,9 +11,11 @@ from config.settings import PERFORMANCE_METRICS
 def training_page(model, scaler, label_encoder):
     """Model retraining and hyperparameter tuning page"""
     
-    st.markdown("# 🎯 Model Training & Optimization")
+    st.markdown("# Model Training & Optimization")
+    st.markdown("Retrain models and optimize hyperparameters for improved performance")
+    st.markdown("---")
     
-    st.markdown("## 📊 Current Model Status")
+    st.markdown("## Current Performance")
     
     col1, col2, col3 = st.columns(3)
     
@@ -27,19 +28,18 @@ def training_page(model, scaler, label_encoder):
     with col3:
         st.metric("F1-Score", f"{PERFORMANCE_METRICS['f1_score']}")
     
-    st.markdown("## 🎯 Choose Training Option")
+    st.markdown("## Training Options")
     
-    # Training option selection
     training_option = st.radio(
-        "Select what you want to do:",
-        ["🔄 Retrain Existing Model", "⚙️ Hyperparameter Tuning", "🆕 Train New Model"],
+        "Select training approach:",
+        ["Retrain Existing Model", "Hyperparameter Tuning", "Train New Model"],
         horizontal=True
     )
     
     st.markdown("---")
     
-    if training_option == "🔄 Retrain Existing Model":
-        st.markdown("## 🔄 Retrain Existing Model")
+    if training_option == "Retrain Existing Model":
+        st.markdown("## Retrain Existing Model")
         
         st.markdown("""
         ### Retrain with New Data
@@ -54,24 +54,24 @@ def training_page(model, scaler, label_encoder):
         )
         
         if uploaded_data is not None:
-            st.success("✅ Data uploaded successfully!")
+            st.success("Data uploaded successfully!")
             
             col1, col2 = st.columns(2)
             
             with col1:
-                if st.button("🔄 Retrain Model", type="primary"):
+                if st.button("Retrain Model", type="primary"):
                     with st.spinner("Training model..."):
                         # Simulate training process
                         import time
                         time.sleep(2)
-                        st.success("✅ Model retrained successfully!")
+                        st.success("Model retrained successfully!")
             
             with col2:
-                if st.button("📊 Compare Performance"):
+                if st.button("Compare Performance"):
                     st.info("Performance comparison feature coming soon!")
     
-    elif training_option == "⚙️ Hyperparameter Tuning":
-        st.markdown("## ⚙️ Hyperparameter Tuning")
+    elif training_option == "Hyperparameter Tuning":
+        st.markdown("## Hyperparameter Tuning")
         
         st.markdown("""
         ### Optimize Model Parameters
@@ -79,24 +79,24 @@ def training_page(model, scaler, label_encoder):
         Adjust hyperparameters to improve model performance:
         """)
         
-        with st.expander("🔧 Random Forest Parameters"):
+        with st.expander("Random Forest Parameters"):
             n_estimators = st.slider("Number of Trees", 50, 500, 100)
             max_depth = st.slider("Max Depth", 5, 50, 20)
             min_samples_split = st.slider("Min Samples Split", 2, 20, 5)
             
-            if st.button("🎯 Optimize Random Forest"):
+            if st.button("Optimize Random Forest"):
                 st.info("Hyperparameter optimization feature coming soon!")
         
-        with st.expander("🚀 XGBoost Parameters"):
+        with st.expander("XGBoost Parameters"):
             learning_rate = st.slider("Learning Rate", 0.01, 0.3, 0.1)
             n_estimators_xgb = st.slider("Number of Boosters", 50, 500, 100)
             max_depth_xgb = st.slider("Max Depth", 3, 20, 6)
             
-            if st.button("🎯 Optimize XGBoost"):
+            if st.button("Optimize XGBoost"):
                 st.info("Hyperparameter optimization feature coming soon!")
     
-    elif training_option == "🆕 Train New Model":
-        st.markdown("## 🆕 Train New Model")
+    elif training_option == "Train New Model":
+        st.markdown("## Train New Model")
         
         st.markdown("""
         ### Create Custom Model
@@ -109,16 +109,16 @@ def training_page(model, scaler, label_encoder):
             ["Random Forest", "XGBoost", "Extra Trees", "Neural Network", "SVM"]
         )
         
-        if st.button("🚀 Train New Model", type="primary"):
+        if st.button("Train New Model", type="primary"):
             with st.spinner(f"Training {model_type} model..."):
                 # Simulate training
                 import time
                 time.sleep(3)
-                st.success(f"✅ {model_type} model trained successfully!")
+                st.success(f"{model_type} model trained successfully!")
     
     st.markdown("---")
     
-    st.markdown("## 📈 Model Comparison")
+    st.markdown("## Model Comparison")
     
     st.markdown("""
     ### Compare Different Models
@@ -126,12 +126,12 @@ def training_page(model, scaler, label_encoder):
     Evaluate and compare multiple model architectures:
     """)
     
-    if st.button("📊 Run Model Comparison"):
+    if st.button("Run Model Comparison"):
         st.info("Model comparison feature coming soon!")
     
     # Show relevant notes based on selected option
-    if training_option == "🔄 Retrain Existing Model":
-        st.markdown("## ⚠️ Retraining Notes")
+    if training_option == "Retrain Existing Model":
+        st.markdown("## Retraining Notes")
         
         st.markdown("""
         ### Retraining Considerations:
@@ -148,8 +148,8 @@ def training_page(model, scaler, label_encoder):
         - Test on held-out NASA validation data
         """)
     
-    elif training_option == "⚙️ Hyperparameter Tuning":
-        st.markdown("## ⚠️ Hyperparameter Tuning Notes")
+    elif training_option == "Hyperparameter Tuning":
+        st.markdown("## Hyperparameter Tuning Notes")
         
         st.markdown("""
         ### Tuning Considerations:
@@ -166,8 +166,8 @@ def training_page(model, scaler, label_encoder):
         - Validate final model on independent test set
         """)
     
-    elif training_option == "🆕 Train New Model":
-        st.markdown("## ⚠️ New Model Training Notes")
+    elif training_option == "Train New Model":
+        st.markdown("## New Model Training Notes")
         
         st.markdown("""
         ### Training Considerations:

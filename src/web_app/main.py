@@ -35,7 +35,6 @@ def main():
     # Page configuration
     st.set_page_config(
         page_title="NASA Exoplanet Detection",
-        page_icon="🚀",
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -53,11 +52,11 @@ def main():
         model, scaler, label_encoder, model_info = load_models()
     
     if model is None:
-        st.error("❌ Failed to load models. Please check the model files.")
+        st.error("Failed to load models. Please check the model files.")
         st.stop()
     
     # Show model info in sidebar
-    with st.sidebar.expander("🤖 Model Info"):
+    with st.sidebar.expander("Model Info"):
         # Get available models
         available_models = get_available_models()
         
@@ -81,7 +80,7 @@ def main():
                         st.session_state['loaded_model'] = model
                         st.session_state['loaded_scaler'] = scaler
                         st.session_state['loaded_encoder'] = encoder
-                        st.success(f"✅ Loaded '{selected_model['name']}'")
+                        st.success(f"Loaded '{selected_model['name']}'")
                         st.rerun()
                 
                 # Show model details
@@ -97,24 +96,24 @@ def main():
                 st.write(f"**Type:** {model_info['type']}")
                 st.write(f"**Features:** {model_info['features']}")
                 st.write(f"**Classes:** {model_info['classes']}")
-                st.write("**Status:** ✅ Ready")
+                st.write("**Status:** Ready")
     
     # Sidebar navigation - URL Routing Sistemi
-    st.sidebar.markdown("## 🚀 NASA Exoplanet Detection")
+    st.sidebar.markdown("## NASA Exoplanet Detection")
     
     # Get current page from URL parameters
     current_page = st.query_params.get("page", "home")
     
     # Navigation options with their corresponding page values
     nav_options = [
-        ("🏠 Home", "home"),
-        ("🔮 Single Prediction", "prediction"), 
-        ("📁 Batch Upload", "batch_upload"),
-        ("📊 Analytics Dashboard", "analytics"),
-        ("🤖 Model Management", "models"),
-        ("📊 Model Performance", "performance"),
-        ("🎯 Model Training", "training"),
-        ("ℹ️ About", "about")
+        ("Home", "home"),
+        ("Single Prediction", "prediction"), 
+        ("Batch Upload", "batch_upload"),
+        ("Analytics Dashboard", "analytics"),
+        ("Model Management", "models"),
+        ("Model Performance", "performance"),
+        ("Model Training", "training"),
+        ("About", "about")
     ]
     
     # Create navigation buttons

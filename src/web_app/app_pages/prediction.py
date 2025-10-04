@@ -6,10 +6,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,16 +15,17 @@ from config.settings import FEATURE_NAMES, FEATURE_LABELS
 def prediction_page(model, scaler, label_encoder):
     """Detailed prediction page with comprehensive inputs and outputs"""
     
-    st.markdown("# 🔮 Single Exoplanet Prediction")
+    st.markdown("# Single Exoplanet Prediction")
+    st.markdown("Detailed analysis of individual exoplanet candidates")
+    st.markdown("---")
     
-    # Input form
-    st.markdown("## 📥 Enter Exoplanet Candidate Data")
+    st.markdown("## Input Parameters")
     
     with st.form("detailed_prediction"):
+        st.markdown("### Planetary Characteristics")
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("### 🌍 Planetary Characteristics")
             orbital_period = st.number_input(
                 "Orbital Period (days)", 
                 min_value=0.1, max_value=1000.0, 
@@ -46,7 +43,7 @@ def prediction_page(model, scaler, label_encoder):
             )
         
         with col2:
-            st.markdown("### ⭐ Stellar Characteristics") 
+            st.markdown("### Stellar Characteristics")
             stellar_temp = st.number_input(
                 "Stellar Temperature (K)", 
                 min_value=2000, max_value=10000, 
@@ -63,8 +60,7 @@ def prediction_page(model, scaler, label_encoder):
                 value=1000, help="How much star light is blocked"
             )
         
-        st.markdown("---")
-        submitted = st.form_submit_button("🚀 Analyze Exoplanet Candidate", use_container_width=True, type="primary")
+        submitted = st.form_submit_button("Analyze Candidate", use_container_width=True, type="primary")
     
     if submitted:
         # Make prediction
@@ -76,8 +72,7 @@ def prediction_page(model, scaler, label_encoder):
         prediction, confidence, prob = predict_exoplanet(features, model, scaler, label_encoder)
         
         if prediction:
-            # Results display
-            st.markdown("## 🎯 Prediction Results")
+            st.markdown("## Analysis Results")
             
             col1, col2 = st.columns([2, 1])
             
@@ -85,45 +80,50 @@ def prediction_page(model, scaler, label_encoder):
                 if prediction == 'CONFIRMED':
                     st.markdown(f"""
                     <div class="prediction-result confirmed">
-                    🌍 CONFIRMED EXOPLANET<br>
+                    CONFIRMED EXOPLANET<br>
                     Confidence: {confidence:.1f}%
                     </div>
                     """, unsafe_allow_html=True)
                     
                     st.markdown(f"""
-                    ### ✅ What This Means:
-                    - This candidate shows strong evidence of being a **real exoplanet**
-                    - Our model is **{confidence:.1f}% confident** in this prediction
-                    - This result is based on patterns learned from **21,271 NASA records**
+                    ### Classification Result
+                    - **Prediction:** CONFIRMED EXOPLANET
+                    - **Confidence:** {confidence:.1f}%
+                    - **Interpretation:** Strong evidence of genuine planetary companion
+                    """)
                     
-                    ### 🔬 Scientific Interpretation:
-                    The combination of orbital parameters, transit characteristics, and stellar properties 
-                    strongly suggests this is a genuine planetary companion orbiting its host star.
+                    st.markdown("### Scientific Analysis")
+                    st.markdown(f"""
+                    The orbital parameters, transit characteristics, and stellar properties 
+                    indicate a **{confidence:.1f}% probability** of this being a confirmed exoplanet.
+                    This classification is based on patterns learned from NASA mission data.
                     """)
                     
                 else:  # FALSE_POSITIVE
                     st.markdown(f"""
                     <div class="prediction-result false-positive">
-                    ⚠️ FALSE POSITIVE<br>
+                    FALSE POSITIVE<br>
                     Confidence: {confidence:.1f}%
                     </div>
                     """, unsafe_allow_html=True)
                     
                     st.markdown(f"""
-                    ### ❌ What This Means:
-                    - This candidate shows characteristics consistent with **false positive signals**
-                    - Our model is **{confidence:.1f}% confident** this is not a genuine exoplanet
-                    - This could be instrumental noise, stellar activity, or other false signals
+                    ### Classification Result
+                    - **Prediction:** FALSE POSITIVE
+                    - **Confidence:** {confidence:.1f}%
+                    - **Interpretation:** Signal inconsistent with planetary transit
+                    """)
                     
-                    ### 🔬 Scientific Interpretation:
-                    While interesting, this signal does not appear to represent a true planetary transit
-                    based on our analysis of the input parameters.
+                    st.markdown("### Scientific Analysis")
+                    st.markdown(f"""
+                    The input parameters suggest a **{confidence:.1f}% probability** of this being 
+                    a false positive signal. This could result from instrumental noise, stellar activity, 
+                    or other non-planetary phenomena.
                     """)
             
             with col2:
-                st.markdown("### 📊 Prediction Probabilities")
+                st.markdown("### Model Confidence")
                 
-                # Probability visualization
                 prob_df = pd.DataFrame({
                     'Class': ['CONFIRMED', 'FALSE_POSITIVE'],
                     'Probability': [prob[0]*100, prob[1]*100] if prob is not None else [50, 50]
@@ -135,13 +135,12 @@ def prediction_page(model, scaler, label_encoder):
                     y='Probability',
                     color='Class',
                     color_discrete_map={'CONFIRMED': '#2E8B57', 'FALSE_POSITIVE': '#DC143C'},
-                    title="Model Confidence"
+                    title="Classification Probabilities"
                 )
                 fig.update_layout(showlegend=False, height=300)
                 fig.update_traces(texttemplate='%{y:.1f}%', textposition='outside')
                 
                 st.plotly_chart(fig, use_container_width=True)
             
-            # Feature importance section
-            st.markdown("### 🔍 Feature Analysis")
-            st.markdown("This section would show feature importance analysis (coming in Phase 2)")
+            st.markdown("### Feature Analysis")
+            st.markdown("Feature importance analysis will be available in future updates.")

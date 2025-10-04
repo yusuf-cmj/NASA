@@ -29,15 +29,15 @@ def show_paginated_table(df, page_size=100, key_prefix="table"):
     col1, col2, col3 = st.columns([2, 1, 1])
     
     with col1:
-        st.info(f"📊 Showing rows {start_idx + 1}-{end_idx} of {total_rows} total rows")
+        st.info(f"Showing rows {start_idx + 1}-{end_idx} of {total_rows} total rows")
     
     with col2:
-        if st.button("⬅️ Previous", key=f"{key_prefix}_prev", disabled=current_page == 0):
+        if st.button("Previous", key=f"{key_prefix}_prev", disabled=current_page == 0):
             st.query_params[page_param] = str(current_page - 1)
             st.rerun()
     
     with col3:
-        if st.button("Next ➡️", key=f"{key_prefix}_next", disabled=current_page >= total_pages - 1):
+        if st.button("Next", key=f"{key_prefix}_next", disabled=current_page >= total_pages - 1):
             st.query_params[page_param] = str(current_page + 1)
             st.rerun()
     
@@ -65,24 +65,22 @@ def show_prediction_result(prediction, confidence, dark_mode=False):
     """Show prediction result with styling"""
     if prediction == 'CONFIRMED':
         css_class = 'confirmed'
-        icon = '✅'
         label = 'CONFIRMED'
     else:
         css_class = 'false-positive'
-        icon = '❌'
         label = 'FALSE_POSITIVE'
     
     st.markdown(f"""
     <div class="prediction-result {css_class}">
-        {icon} <strong>{label}</strong><br>
+        <strong>{label}</strong><br>
         Confidence: {confidence:.2%}
     </div>
     """, unsafe_allow_html=True)
 
-def show_metrics_card(title, value, subtitle="", icon="📊"):
+def show_metrics_card(title, value, subtitle=""):
     """Show a metrics card"""
     st.metric(
-        label=f"{icon} {title}",
+        label=title,
         value=value,
         delta=subtitle if subtitle else None
     )
@@ -90,41 +88,41 @@ def show_metrics_card(title, value, subtitle="", icon="📊"):
 def show_model_performance():
     """Display model performance metrics"""
     
-    st.markdown('<div class="sub-header">🎯 Model Performance</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Model Performance</div>', unsafe_allow_html=True)
     
     # Performance metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.metric(
-            label="🎯 Accuracy",
+            label="Accuracy",
             value="88.21%",
             delta="+23.39% vs Ternary"
         )
     
     with col2:
         st.metric(
-            label="📊 ROC-AUC",
+            label="ROC-AUC",
             value="0.9448",
             delta="Excellent"
         )
     
     with col3:
         st.metric(
-            label="⚡ F1-Score",
+            label="F1-Score",
             value="0.88",
             delta="Balanced"
         )
     
     with col4:
         st.metric(
-            label="📈 Dataset Size",
+            label="Dataset Size",
             value="21,271",
             delta="NASA Sources"
         )
     
     # Detailed metrics
-    st.markdown("### 📈 Detailed Performance Metrics")
+    st.markdown("### Detailed Performance Metrics")
     
     details_df = pd.DataFrame({
         'Metric': ['CONFIRMED Precision', 'CONFIRMED Recall', 'FALSE_POSITIVE Precision', 'FALSE_POSITIVE Recall'],
@@ -136,16 +134,16 @@ def show_model_performance():
 
 def create_sidebar_navigation():
     """Create sidebar navigation menu"""
-    st.sidebar.title("🚀 NASA Exoplanet Detection")
+    st.sidebar.title("NASA Exoplanet Detection")
     
     pages = {
-        "🏠 Home": "home",
-        "🔮 Single Prediction": "prediction", 
-        "📁 Batch Upload": "batch_upload",
-        "📊 Analytics Dashboard": "analytics",
-        "🤖 Model Management": "models",
-        "🎯 Model Training": "training",
-        "ℹ️ About": "about"
+        "Home": "home",
+        "Single Prediction": "prediction", 
+        "Batch Upload": "batch_upload",
+        "Analytics Dashboard": "analytics",
+        "Model Management": "models",
+        "Model Training": "training",
+        "About": "about"
     }
     
     selected_page = st.sidebar.selectbox(

@@ -48,9 +48,9 @@ def batch_upload_page(model, scaler, label_encoder):
     </style>
     """, unsafe_allow_html=True)
     
-    st.markdown("# 📁 Batch Upload & Processing")
-    
-    st.markdown("## 📤 Upload Your Data")
+    st.markdown("# Batch Upload & Processing")
+    st.markdown("Upload CSV files for bulk exoplanet candidate analysis")
+    st.markdown("---")
     
     uploaded_file = st.file_uploader(
         "Choose a CSV or Excel file",
@@ -63,7 +63,7 @@ def batch_upload_page(model, scaler, label_encoder):
         is_valid, message = validate_file_upload(uploaded_file)
         
         if not is_valid:
-            st.error(f"❌ {message}")
+            st.error(f"{message}")
             return
         
         try:
@@ -84,10 +84,10 @@ def batch_upload_page(model, scaler, label_encoder):
             else:
                 df = pd.read_excel(uploaded_file)
             
-            st.success(f"✅ File loaded successfully! Shape: {df.shape}")
+            st.success(f"File loaded successfully! Shape: {df.shape}")
             
             # Show data preview
-            st.markdown("## 📊 Data Preview")
+            st.markdown("## Data Preview")
             st.dataframe(df.head())
             
             # Detect format and get auto mapping
@@ -95,12 +95,12 @@ def batch_upload_page(model, scaler, label_encoder):
             auto_mapping = get_auto_mapping(format_type)
             
             if auto_mapping:
-                st.markdown("## 🔗 Column Mapping")
+                st.markdown("## Column Mapping")
                 
                 # Show mapping interface (no disposition for batch prediction)
                 final_mapping = show_mapping_interface(df, format_type, auto_mapping, include_disposition=False)
                 
-                if st.button("🚀 Process Predictions", type="primary"):
+                if st.button("Process Predictions", type="primary"):
                     # Validate mapping
                     processed_df = validate_and_process_mapping(df, final_mapping)
                     
@@ -111,10 +111,10 @@ def batch_upload_page(model, scaler, label_encoder):
                         if results_df is not None:
                             # Save results to session state to prevent loss on pagination
                             st.session_state['batch_results'] = results_df
-                            st.success("✅ Predictions completed successfully!")
+                            st.success("Predictions completed successfully!")
                             
                             # Show results
-                            st.markdown("## 🎯 Prediction Results")
+                            st.markdown("## Prediction Results")
                             
                             # Summary statistics
                             col1, col2, col3, col4 = st.columns(4)
@@ -135,7 +135,7 @@ def batch_upload_page(model, scaler, label_encoder):
                                 st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
                             
                             # Confidence analysis
-                            st.markdown("### 📊 Confidence Analysis")
+                            st.markdown("### Confidence Analysis")
                             
                             col1, col2 = st.columns(2)
                             
@@ -169,12 +169,12 @@ def batch_upload_page(model, scaler, label_encoder):
                                 st.plotly_chart(fig_box, use_container_width=True, key="confidence_box_new")
                             
                             # Confidence statistics
-                            st.markdown("#### 📈 Confidence Statistics")
+                            st.markdown("#### Confidence Statistics")
                             confidence_stats = results_df.groupby('prediction')['confidence'].agg(['mean', 'std', 'min', 'max']).round(1)
                             st.dataframe(confidence_stats)
                             
                             # Show paginated results
-                            st.markdown("### 📋 Detailed Results")
+                            st.markdown("### Detailed Results")
                             paginated_results = show_paginated_table(results_df, page_size=50, key_prefix="batch_new")
                             
                             # Style the dataframe with prediction colors
@@ -184,31 +184,31 @@ def batch_upload_page(model, scaler, label_encoder):
                             # Download results
                             csv = results_df.to_csv(index=False)
                             st.download_button(
-                                label="📥 Download Results as CSV",
+                                label="Download Results as CSV",
                                 data=csv,
                                 file_name="exoplanet_predictions.csv",
                                 mime="text/csv"
                             )
             else:
-                st.warning("⚠️ No mapping available for this format. Please check your data.")
+                st.warning("No mapping available for this format. Please check your data.")
             
         except Exception as e:
-            st.error(f"❌ Error processing file: {e}")
-            st.info("💡 **Tips:**\n- Ensure CSV file is properly formatted\n- Check for special characters or encoding issues\n- Try saving as UTF-8 CSV format")
+            st.error(f"Error processing file: {e}")
+            st.info("**Tips:**\n- Ensure CSV file is properly formatted\n- Check for special characters or encoding issues\n- Try saving as UTF-8 CSV format")
     
     else:
         st.markdown("""
-        ## 📋 Supported Formats
+        ## Supported Formats
         
-        ### 🚀 NASA Raw Datasets:
+        ### NASA Raw Datasets:
         - **TESS TOI:** Raw TESS data with columns like `pl_orbper`, `st_teff`, etc.
         - **Kepler KOI:** Raw Kepler data with columns like `koi_period`, `koi_prad`, etc.
         - **K2 Candidates:** Raw K2 data with columns like `pl_name`, `disposition`, etc.
         
-        ### 📊 Standard Format:
+        ### Standard Format:
         - **Pre-processed data** with `orbital_period`, `transit_duration`, etc.
         
-        ### 💡 Tips:
+        ### Tips:
         - Upload CSV files with proper column headers
         - Ensure data is properly formatted
         - Missing values will be handled automatically
@@ -218,7 +218,7 @@ def batch_upload_page(model, scaler, label_encoder):
     if 'batch_results' in st.session_state:
         results_df = st.session_state['batch_results']
         
-        st.markdown("## 🎯 Prediction Results")
+        st.markdown("## Prediction Results")
         
         # Summary statistics
         col1, col2, col3, col4 = st.columns(4)
@@ -239,7 +239,7 @@ def batch_upload_page(model, scaler, label_encoder):
             st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
         
         # Confidence analysis
-        st.markdown("### 📊 Confidence Analysis")
+        st.markdown("### Confidence Analysis")
         
         col1, col2 = st.columns(2)
         
@@ -273,12 +273,12 @@ def batch_upload_page(model, scaler, label_encoder):
             st.plotly_chart(fig_box, use_container_width=True, key="confidence_box_saved")
         
         # Confidence statistics
-        st.markdown("#### 📈 Confidence Statistics")
+        st.markdown("#### Confidence Statistics")
         confidence_stats = results_df.groupby('prediction')['confidence'].agg(['mean', 'std', 'min', 'max']).round(1)
         st.dataframe(confidence_stats)
         
         # Show paginated results
-        st.markdown("### 📋 Detailed Results")
+        st.markdown("### Detailed Results")
         paginated_results = show_paginated_table(results_df, page_size=50, key_prefix="batch_saved")
         
         # Style the dataframe with prediction colors
@@ -288,13 +288,13 @@ def batch_upload_page(model, scaler, label_encoder):
         # Download results
         csv = results_df.to_csv(index=False)
         st.download_button(
-            label="📥 Download Results as CSV",
+            label="Download Results as CSV",
             data=csv,
             file_name=f"exoplanet_predictions_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
             mime="text/csv"
         )
         
         # Clear results button
-        if st.button("🗑️ Clear Results", type="secondary"):
+        if st.button("Clear Results", type="secondary"):
             del st.session_state['batch_results']
             st.rerun()
