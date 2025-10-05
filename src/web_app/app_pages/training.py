@@ -937,7 +937,14 @@ def training_page(model, scaler, label_encoder):
 
                                     if len(prepared_data) < 100:
                                         st.warning("Training with small dataset may be risky. NASA data is recommended.")
-                                    st.info(f"Using only user data: {len(combined_data):,} records")
+                                    
+                                    # Show correct data usage message
+                                    if use_nasa_data:
+                                        nasa_count = len(nasa_binary_data)
+                                        user_count = len(prepared_data)
+                                        st.info(f"Using combined data: {len(combined_data):,} records ({nasa_count:,} NASA + {user_count:,} user data)")
+                                    else:
+                                        st.info(f"Using only user data: {len(combined_data):,} records")
 
                                     # Step 3: Preprocessing
                                     status_text.text("Preprocessing data...")
