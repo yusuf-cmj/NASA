@@ -1210,7 +1210,7 @@ def training_page(model, scaler, label_encoder):
                 # Download button
                 model_buffer = create_model_download(trained_model, trained_scaler, trained_label_encoder, trained_metadata)
                 st.download_button(
-                    label="📥 Download Model (.pkl)",
+                    label="Download Model (.pkl)",
                     data=model_buffer,
                     file_name=f"{trained_metadata.get('name', 'model')}.pkl",
                     mime="application/octet-stream",
@@ -1219,7 +1219,7 @@ def training_page(model, scaler, label_encoder):
             
             with col2:
                 # Save to models button
-                if st.button("💾 Save to Models", help="Save the model to the automatic models list"):
+                if st.button("Save to Models", help="Save the model to the automatic models list"):
                     success = save_model(trained_model, trained_scaler, trained_label_encoder, trained_metadata, trained_metadata.get('name', 'model'))
                     if success:
                         st.success(f"**Model '{trained_metadata.get('name', 'model')}' saved to Models list!**")
