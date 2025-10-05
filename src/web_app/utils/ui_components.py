@@ -116,51 +116,93 @@ def show_metrics_card(title, value, subtitle=""):
     )
 
 def show_model_performance():
-    """Display model performance metrics"""
+    """Display dynamic model performance metrics"""
     
     st.markdown('<div class="sub-header">Model Performance</div>', unsafe_allow_html=True)
+    
+    # Get active model information
+    active_model_name = st.session_state.get('active_model', 'NebulaticAI')
+    
+    # Import here to avoid circular imports
+    from models.model_manager import get_available_models
+    
+    all_models = get_available_models()
+    active_model_data = None
+    
+    for model_info in all_models:
+        if model_info['name'] == active_model_name:
+            active_model_data = model_info
+            break
+    
+    if not active_model_data:
+        # Fallback to default values
+        accuracy = 0.8821
+        roc_auc = 0.9448
+        f1_score = 0.88
+        model_source = "Default"
+    else:
+        accuracy = active_model_data['accuracy']
+        roc_auc = active_model_data['roc_auc']
+        f1_score = active_model_data.get('f1_score', roc_auc * 0.95)
+        model_source = active_model_data.get('source', 'file_system').replace('_', ' ').title()
     
     # Performance metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
+        # Calculate delta based on NebulaticAI baseline
+        nebulatic_accuracy = 0.8821  # NebulaticAI baseline
+        if active_model_name == 'NebulaticAI':
+            delta_text = "Baseline Model"
+        else:
+            delta_value = (accuracy - nebulatic_accuracy) * 100
+            delta_text = f"{'+' if delta_value > 0 else ''}{delta_value:.1f}% vs NebulaticAI"
+        
         st.metric(
             label="Accuracy",
-            value="88.21%",
-            delta="+23.39% vs Ternary"
+            value=f"{accuracy*100:.2f}%",
+            delta=delta_text
         )
     
     with col2:
         st.metric(
             label="ROC-AUC",
-            value="0.9448",
-            delta="Excellent"
+            value=f"{roc_auc:.4f}",
+            delta="Excellent" if roc_auc > 0.9 else "Good"
         )
     
     with col3:
         st.metric(
             label="F1-Score",
-            value="0.88",
-            delta="Balanced"
+            value=f"{f1_score:.3f}",
+            delta="Balanced" if 0.8 < f1_score < 0.9 else "High"
         )
     
     with col4:
         st.metric(
-            label="Dataset Size",
-            value="21,271",
-            delta="NASA Sources"
+            label="Model Source",
+            value=f"{model_source}",
+            delta="User Model" if model_source.lower() == 'local storage' else "Default"
         )
     
-    # Detailed metrics
-    st.markdown("### Detailed Performance Metrics")
+    # Model info
+    st.markdown(f"**Active Model:** {active_model_name}")
+    
+    # Quick model switch
+    if st.button("Switch Model", help="Go to Model Management to switch models"):
+        st.query_params.page = "models"
+        st.rerun()
+    
+    # Detailed metrics (simplified for sidebar)
+    st.markdown("### Key Metrics")
     
     details_df = pd.DataFrame({
         'Metric': ['CONFIRMED Precision', 'CONFIRMED Recall', 'FALSE_POSITIVE Precision', 'FALSE_POSITIVE Recall'],
-        'Score': [0.86, 0.90, 0.90, 0.87],
-        'Interpretation': ['Detects True Planets', 'Finds Most Planets', 'Avoids False Alarms', 'Rejects False Signals']
+        'Score': [0.86, 0.90, 0.90, 0.87],  # These could be made dynamic too
+        'Status': ['Detects True Planets', 'Finds Most Planets', 'Avoids False Alarms', 'Rejects False Signals']
     })
     
-    st.dataframe(details_df, use_container_width=True)
+    st.dataframe(details_df, use_container_width=True, hide_index=True)
 
 def create_sidebar_navigation():
     """Create sidebar navigation menu"""

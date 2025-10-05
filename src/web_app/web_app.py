@@ -474,7 +474,6 @@ def main():
             "📁 Batch Upload", 
             "📊 Analytics Dashboard",
             "⚖️ Model Comparison", 
-            "📊 Model Performance",
             "🔧 Model Training",
             "ℹ️ About"
         ]
@@ -493,8 +492,6 @@ def main():
         model_comparison_page_v2()
     elif page == "📊 Models":
         models_page()
-    elif page == "📊 Model Performance":
-        show_model_performance()
     elif page == "🔧 Model Training":
         model_training_page(model, scaler, label_encoder)
     elif page == "ℹ️ About":

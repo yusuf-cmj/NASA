@@ -27,7 +27,6 @@ from app_pages.training import training_page
 from app_pages.about import about_page
 
 # Import utilities
-from utils.ui_components import show_model_performance
 
 def main():
     """Main application interface"""
@@ -100,7 +99,6 @@ def main():
         ("Batch Upload", "batch_upload"),
         ("Analytics Dashboard", "analytics"),
         ("Model Management", "models"),
-        ("Model Performance", "performance"),
         ("Model Training", "training"),
         ("About", "about")
     ]
@@ -125,8 +123,6 @@ def main():
         analytics_dashboard(model, scaler, label_encoder)
     elif current_page == "models":
         models_page()
-    elif current_page == "performance":
-        show_model_performance()
     elif current_page == "training":
         training_page(model, scaler, label_encoder)
     elif current_page == "about":
