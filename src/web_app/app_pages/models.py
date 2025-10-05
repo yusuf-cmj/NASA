@@ -60,38 +60,57 @@ def models_page():
             
             with col3:
                 if st.button(f"Delete", key=f"delete_{i}", type="secondary", disabled=is_active):
-                    # Actually delete the model
-                    current_dir = os.path.dirname(os.path.abspath(__file__))
-                    project_root = os.path.join(current_dir, '..', '..', '..')
-                    models_dir = os.path.join(project_root, 'data', 'models')
-                    
                     try:
                         model_filename = model['filename'].replace(' ', '_').replace('/', '_')
-                        files_to_delete = [
-                            f'{model_filename}_model.pkl',
-                            f'{model_filename}_scaler.pkl',
-                            f'{model_filename}_encoder.pkl',
-                            f'{model_filename}_metadata.pkl'
-                        ]
                         
-                        deleted_count = 0
-                        for file in files_to_delete:
-                            file_path = os.path.join(models_dir, file)
-                            if os.path.exists(file_path):
-                                os.remove(file_path)
-                                deleted_count += 1
+                        # Delete from Local Storage
+                        if model.get('source') == 'local_storage':
+                            # Remove from session state
+                            if 'local_storage_models' in st.session_state:
+                                st.session_state['local_storage_models'] = [
+                                    m for m in st.session_state['local_storage_models'] 
+                                    if m['filename'] != model_filename
+                                ]
+                            
+                            # Remove from browser localStorage
+                            from models.model_manager import delete_model_from_local_storage
+                            delete_model_from_local_storage(model_filename)
+                            
+                            st.success(f"Deleted '{model['name']}' from Local Storage")
+                            
+                        # Delete from File System (legacy models)
+                        elif model.get('source') == 'file_system':
+                            current_dir = os.path.dirname(os.path.abspath(__file__))
+                            project_root = os.path.join(current_dir, '..', '..', '..')
+                            models_dir = os.path.join(project_root, 'data', 'models')
+                            
+                            files_to_delete = [
+                                f'{model_filename}_model.pkl',
+                                f'{model_filename}_scaler.pkl',
+                                f'{model_filename}_encoder.pkl',
+                                f'{model_filename}_metadata.pkl'
+                            ]
+                            
+                            deleted_count = 0
+                            for file in files_to_delete:
+                                file_path = os.path.join(models_dir, file)
+                                if os.path.exists(file_path):
+                                    os.remove(file_path)
+                                    deleted_count += 1
+                            
+                            if deleted_count > 0:
+                                st.success(f"Deleted {deleted_count} files for '{model['name']}'")
+                            else:
+                                st.error("No files found to delete")
                         
-                        if deleted_count > 0:
-                            st.success(f"Deleted {deleted_count} files for '{model['name']}'")
-                            # Clear session state if deleted model was active
-                            if model['name'] == active_model:
-                                st.session_state['active_model'] = 'NebulaticAI'
-                                st.session_state['loaded_model'] = None
-                                st.session_state['loaded_scaler'] = None
-                                st.session_state['loaded_encoder'] = None
-                            st.rerun()
-                        else:
-                            st.error("No files found to delete")
+                        # Clear session state if deleted model was active
+                        if model['name'] == active_model:
+                            st.session_state['active_model'] = 'NebulaticAI'
+                            st.session_state['loaded_model'] = None
+                            st.session_state['loaded_scaler'] = None
+                            st.session_state['loaded_encoder'] = None
+                        
+                        st.rerun()
                             
                     except Exception as e:
                         st.error(f"Error deleting model: {e}")
