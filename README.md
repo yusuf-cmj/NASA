@@ -144,6 +144,11 @@ The system analyzes input parameters and predicts:
 - MDPI Electronics research paper on exoplanet detection
 - MNRAS journal ensemble methods study
 
+## Documentation
+
+- **Project Presentation:** [presentation.pptx](presentation.pptx) - Comprehensive project overview and technical details
+- **PDF Version:** [presentation.pdf](presentation.pdf) - Presentation in PDF format
+
 ## Team
 
 **Nebulatic** - Developing tools that make space exploration more efficient and accessible for researchers worldwide.
