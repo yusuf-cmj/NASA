@@ -394,7 +394,7 @@ def training_page(model, scaler, label_encoder):
                     # NASA data combination option
                     use_nasa_data = st.checkbox(
                         "Combine with NASA dataset",
-                        value=True,
+                        value=st.session_state.get('use_nasa_data', True),
                         help="Combine with NASA's 21,271 exoplanet records to create a more reliable model. If unchecked, training will use only your uploaded data."
                     )
                     
@@ -921,7 +921,7 @@ def training_page(model, scaler, label_encoder):
                                     progress_bar.progress(20)
 
                                     prepared_data = st.session_state.get('prepared_data', mapped_df)
-                                    use_nasa_data = st.session_state.get('use_nasa_data', True)
+                                    use_nasa_data = st.session_state.get('use_nasa_data', False)
 
                                     # Combine datasets based on checkbox selection
                                     if use_nasa_data:
