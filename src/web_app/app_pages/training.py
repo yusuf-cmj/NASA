@@ -216,6 +216,45 @@ def validate_and_process_mapping(df, final_mapping):
     
     return mapped_df
 
+def get_default_hyperparameters(method):
+    """Get default hyperparameters for each training method"""
+    defaults = {
+        'Random Forest': {
+            'n_estimators': 200,
+            'max_depth': 15,
+            'min_samples_split': 3,
+            'min_samples_leaf': 1
+        },
+        'XGBoost': {
+            'n_estimators': 200,
+            'max_depth': 8,
+            'learning_rate': 0.1,
+            'subsample': 0.9
+        },
+        'Extra Trees': {
+            'n_estimators': 200,
+            'max_depth': 15,
+            'min_samples_split': 3,
+            'min_samples_leaf': 1
+        },
+        'Binary Stacking': {
+            'rf': {
+                'n_estimators': 200,
+                'max_depth': 15
+            },
+            'xgb': {
+                'n_estimators': 200,
+                'max_depth': 8,
+                'learning_rate': 0.1
+            },
+            'et': {
+                'n_estimators': 200,
+                'max_depth': 15
+            }
+        }
+    }
+    return defaults.get(method, {})
+
 def training_page(model, scaler, label_encoder):
     """Model training page"""
     
@@ -532,7 +571,17 @@ def training_page(model, scaler, label_encoder):
                                 ["Binary Stacking", "Random Forest", "XGBoost", "Extra Trees"],
                                 index=["Binary Stacking", "Random Forest", "XGBoost", "Extra Trees"].index(st.session_state.get('training_method', 'Binary Stacking')),
                                 help="Choose the machine learning algorithm for training"
-                        )
+                            )
+                            
+                            # Clear hyperparameters when method changes
+                            if 'previous_training_method' not in st.session_state:
+                                st.session_state['previous_training_method'] = training_method
+                            
+                            if st.session_state['previous_training_method'] != training_method:
+                                # Method changed, reset hyperparameters to defaults
+                                st.session_state['hyperparameters'] = get_default_hyperparameters(training_method)
+                                st.session_state['previous_training_method'] = training_method
+                                st.rerun()
                         
                         # Model description
                         model_description = st.text_area(
@@ -561,19 +610,22 @@ def training_page(model, scaler, label_encoder):
                         st.markdown("#### Random Forest Parameters")
                         col1, col2 = st.columns(2)
                         
+                        # Get current hyperparameters or defaults
+                        current_params = st.session_state.get('hyperparameters', get_default_hyperparameters('Random Forest'))
+                        
                         with col1:
                             rf_n_estimators = st.slider(
                                 "Number of Trees",
                                 min_value=50,
                                 max_value=500,
-                                value=st.session_state.get('rf_n_estimators', 200),
+                                value=current_params.get('n_estimators', 200),
                                 help="More trees = better performance but slower training"
                             )
                             rf_max_depth = st.slider(
                                 "Max Depth",
                                 min_value=5,
                                 max_value=30,
-                                value=st.session_state.get('rf_max_depth', 15),
+                                value=current_params.get('max_depth', 15),
                                 help="Maximum depth of each tree"
                             )
                         
@@ -582,14 +634,14 @@ def training_page(model, scaler, label_encoder):
                                 "Min Samples Split",
                                 min_value=2,
                                 max_value=10,
-                                value=st.session_state.get('rf_min_samples_split', 3),
+                                value=current_params.get('min_samples_split', 3),
                                 help="Minimum samples required to split a node"
                             )
                             rf_min_samples_leaf = st.slider(
                                 "Min Samples Leaf",
                                 min_value=1,
                                 max_value=5,
-                                value=st.session_state.get('rf_min_samples_leaf', 1),
+                                value=current_params.get('min_samples_leaf', 1),
                                 help="Minimum samples required in a leaf node"
                             )
                         
@@ -605,19 +657,22 @@ def training_page(model, scaler, label_encoder):
                         st.markdown("#### XGBoost Parameters")
                         col1, col2 = st.columns(2)
                         
+                        # Get current hyperparameters or defaults
+                        current_params = st.session_state.get('hyperparameters', get_default_hyperparameters('XGBoost'))
+                        
                         with col1:
                             xgb_n_estimators = st.slider(
                                 "Boosting Rounds",
                                 min_value=50,
                                 max_value=500,
-                                value=st.session_state.get('xgb_n_estimators', 200),
+                                value=current_params.get('n_estimators', 200),
                                 help="Number of boosting rounds"
                             )
                             xgb_max_depth = st.slider(
                                 "Max Depth",
                                 min_value=3,
                                 max_value=15,
-                                value=st.session_state.get('xgb_max_depth', 8),
+                                value=current_params.get('max_depth', 8),
                                 help="Maximum depth of each tree"
                             )
                         
@@ -626,7 +681,7 @@ def training_page(model, scaler, label_encoder):
                                 "Learning Rate",
                                 min_value=0.01,
                                 max_value=0.3,
-                                value=st.session_state.get('xgb_learning_rate', 0.1),
+                                value=current_params.get('learning_rate', 0.1),
                                 step=0.01,
                                 help="Step size shrinkage to prevent overfitting"
                             )
@@ -634,7 +689,7 @@ def training_page(model, scaler, label_encoder):
                                 "Subsample",
                                 min_value=0.6,
                                 max_value=1.0,
-                                value=st.session_state.get('xgb_subsample', 0.9),
+                                value=current_params.get('subsample', 0.9),
                                 step=0.05,
                                 help="Fraction of samples used for training"
                             )
@@ -651,19 +706,22 @@ def training_page(model, scaler, label_encoder):
                         st.markdown("#### Extra Trees Parameters")
                         col1, col2 = st.columns(2)
                         
+                        # Get current hyperparameters or defaults
+                        current_params = st.session_state.get('hyperparameters', get_default_hyperparameters('Extra Trees'))
+                        
                         with col1:
                             et_n_estimators = st.slider(
                                 "Number of Trees",
                                 min_value=50,
                                 max_value=500,
-                                value=st.session_state.get('et_n_estimators', 200),
+                                value=current_params.get('n_estimators', 200),
                                 help="More trees = better performance but slower training"
                             )
                             et_max_depth = st.slider(
                                 "Max Depth",
                                 min_value=5,
                                 max_value=30,
-                                value=st.session_state.get('et_max_depth', 15),
+                                value=current_params.get('max_depth', 15),
                                 help="Maximum depth of each tree"
                             )
                         
@@ -672,14 +730,14 @@ def training_page(model, scaler, label_encoder):
                                 "Min Samples Split",
                                 min_value=2,
                                 max_value=10,
-                                value=st.session_state.get('et_min_samples_split', 3),
+                                value=current_params.get('min_samples_split', 3),
                                 help="Minimum samples required to split a node"
                             )
                             et_min_samples_leaf = st.slider(
                                 "Min Samples Leaf",
                                 min_value=1,
                                 max_value=5,
-                                value=st.session_state.get('et_min_samples_leaf', 1),
+                                value=current_params.get('min_samples_leaf', 1),
                                 help="Minimum samples required in a leaf node"
                             )
                         
@@ -695,6 +753,9 @@ def training_page(model, scaler, label_encoder):
                         st.markdown("#### Binary Stacking Parameters")
                         st.info("Stacking uses multiple base models. Configure individual models below:")
                         
+                        # Get current hyperparameters or defaults
+                        current_params = st.session_state.get('hyperparameters', get_default_hyperparameters('Binary Stacking'))
+                        
                         # Random Forest for Stacking
                         st.markdown("**Random Forest Base Model:**")
                         col1, col2 = st.columns(2)
@@ -703,7 +764,7 @@ def training_page(model, scaler, label_encoder):
                                 "RF Trees",
                                 min_value=50,
                                 max_value=300,
-                                value=st.session_state.get('stack_rf_n_estimators', 200),
+                                value=current_params.get('rf', {}).get('n_estimators', 200),
                                 help="Number of Random Forest trees"
                             )
                         with col2:
@@ -711,7 +772,7 @@ def training_page(model, scaler, label_encoder):
                                 "RF Max Depth",
                                 min_value=5,
                                 max_value=25,
-                                value=st.session_state.get('stack_rf_max_depth', 15),
+                                value=current_params.get('rf', {}).get('max_depth', 15),
                                 help="Random Forest max depth"
                             )
                         
@@ -723,7 +784,7 @@ def training_page(model, scaler, label_encoder):
                                 "XGB Trees",
                                 min_value=50,
                                 max_value=300,
-                                value=st.session_state.get('stack_xgb_n_estimators', 200),
+                                value=current_params.get('xgb', {}).get('n_estimators', 200),
                                 help="Number of XGBoost trees"
                             )
                         with col2:
@@ -731,7 +792,7 @@ def training_page(model, scaler, label_encoder):
                                 "XGB Max Depth",
                                 min_value=3,
                                 max_value=12,
-                                value=st.session_state.get('stack_xgb_max_depth', 8),
+                                value=current_params.get('xgb', {}).get('max_depth', 8),
                                 help="XGBoost max depth"
                             )
                         
@@ -741,7 +802,7 @@ def training_page(model, scaler, label_encoder):
                                 "XGB Learning Rate",
                                 min_value=0.01,
                                 max_value=0.2,
-                                value=st.session_state.get('stack_xgb_learning_rate', 0.1),
+                                value=current_params.get('xgb', {}).get('learning_rate', 0.1),
                                 step=0.01,
                                 help="XGBoost learning rate"
                             )
@@ -757,7 +818,7 @@ def training_page(model, scaler, label_encoder):
                                 "ET Trees",
                                 min_value=50,
                                 max_value=300,
-                                value=st.session_state.get('stack_et_n_estimators', 200),
+                                value=current_params.get('et', {}).get('n_estimators', 200),
                                 help="Number of Extra Trees"
                             )
                         with col2:
@@ -765,7 +826,7 @@ def training_page(model, scaler, label_encoder):
                                 "ET Max Depth",
                                 min_value=5,
                                 max_value=25,
-                                value=st.session_state.get('stack_et_max_depth', 15),
+                                value=current_params.get('et', {}).get('max_depth', 15),
                                 help="Extra Trees max depth"
                             )
                         
@@ -917,6 +978,9 @@ def training_page(model, scaler, label_encoder):
 
                                     # Get training method from session state
                                     training_method = st.session_state.get('training_method', 'Binary Stacking')
+                                    
+                                    # Get hyperparameters from session state
+                                    hyperparams = st.session_state.get('hyperparameters', {})
 
                                     # Step 6-9: Train selected model
                                     if training_method == "Binary Stacking":
@@ -924,9 +988,14 @@ def training_page(model, scaler, label_encoder):
                                         status_text.text("Training base models for stacking...")
                                         progress_bar.progress(60)
 
+                                        # Get stacking hyperparameters
+                                        rf_params = hyperparams.get('rf', {})
+                                        xgb_params = hyperparams.get('xgb', {})
+                                        et_params = hyperparams.get('et', {})
+
                                         rf_model = RandomForestClassifier(
-                                            n_estimators=200,
-                                            max_depth=15,
+                                            n_estimators=rf_params.get('n_estimators', 200),
+                                            max_depth=rf_params.get('max_depth', 15),
                                             min_samples_split=3,
                                             min_samples_leaf=1,
                                             random_state=42,
@@ -936,9 +1005,9 @@ def training_page(model, scaler, label_encoder):
                                         rf_model.fit(X_train, y_train)
 
                                         xgb_model = xgb.XGBClassifier(
-                                            n_estimators=200,
-                                            max_depth=8,
-                                            learning_rate=0.1,
+                                            n_estimators=xgb_params.get('n_estimators', 200),
+                                            max_depth=xgb_params.get('max_depth', 8),
+                                            learning_rate=xgb_params.get('learning_rate', 0.1),
                                             subsample=0.9,
                                             colsample_bytree=0.9,
                                             random_state=42,
@@ -948,8 +1017,8 @@ def training_page(model, scaler, label_encoder):
                                         xgb_model.fit(X_train, y_train)
 
                                         et_model = ExtraTreesClassifier(
-                                            n_estimators=200,
-                                            max_depth=15,
+                                            n_estimators=et_params.get('n_estimators', 200),
+                                            max_depth=et_params.get('max_depth', 15),
                                             min_samples_split=3,
                                             min_samples_leaf=1,
                                             random_state=42,
@@ -983,10 +1052,10 @@ def training_page(model, scaler, label_encoder):
                                         progress_bar.progress(90)
 
                                         final_model = RandomForestClassifier(
-                                            n_estimators=200,
-                                            max_depth=15,
-                                            min_samples_split=3,
-                                            min_samples_leaf=1,
+                                            n_estimators=hyperparams.get('n_estimators', 200),
+                                            max_depth=hyperparams.get('max_depth', 15),
+                                            min_samples_split=hyperparams.get('min_samples_split', 3),
+                                            min_samples_leaf=hyperparams.get('min_samples_leaf', 1),
                                             random_state=42,
                                             n_jobs=-1,
                                             class_weight='balanced'
@@ -998,10 +1067,10 @@ def training_page(model, scaler, label_encoder):
                                         progress_bar.progress(90)
 
                                         final_model = xgb.XGBClassifier(
-                                            n_estimators=200,
-                                            max_depth=8,
-                                            learning_rate=0.1,
-                                            subsample=0.9,
+                                            n_estimators=hyperparams.get('n_estimators', 200),
+                                            max_depth=hyperparams.get('max_depth', 8),
+                                            learning_rate=hyperparams.get('learning_rate', 0.1),
+                                            subsample=hyperparams.get('subsample', 0.9),
                                             colsample_bytree=0.9,
                                             random_state=42,
                                             eval_metric='logloss',
@@ -1014,10 +1083,10 @@ def training_page(model, scaler, label_encoder):
                                         progress_bar.progress(90)
 
                                         final_model = ExtraTreesClassifier(
-                                            n_estimators=200,
-                                            max_depth=15,
-                                            min_samples_split=3,
-                                            min_samples_leaf=1,
+                                            n_estimators=hyperparams.get('n_estimators', 200),
+                                            max_depth=hyperparams.get('max_depth', 15),
+                                            min_samples_split=hyperparams.get('min_samples_split', 3),
+                                            min_samples_leaf=hyperparams.get('min_samples_leaf', 1),
                                             random_state=42,
                                             n_jobs=-1,
                                             class_weight='balanced'
@@ -1048,6 +1117,7 @@ def training_page(model, scaler, label_encoder):
                                         'training_data_size': len(combined_data),
                                         'user_data_size': len(prepared_data),
                                         'base_model': training_method,
+                                        'hyperparameters': hyperparams,
                                         'features': required_features,
                                         'classes': ['CONFIRMED', 'FALSE_POSITIVE']
                                     }
