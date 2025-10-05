@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 import os
 import sys
+import pickle
+import io
 from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import PERFORMANCE_METRICS
@@ -254,6 +256,22 @@ def get_default_hyperparameters(method):
         }
     }
     return defaults.get(method, {})
+
+def create_model_download(model, scaler, label_encoder, metadata):
+    """Create a downloadable model file"""
+    model_data = {
+        'model': model,
+        'scaler': scaler,
+        'label_encoder': label_encoder,
+        'metadata': metadata
+    }
+    
+    # Create pickle file in memory
+    buffer = io.BytesIO()
+    pickle.dump(model_data, buffer)
+    buffer.seek(0)
+    
+    return buffer
 
 def training_page(model, scaler, label_encoder):
     """Model training page"""
@@ -601,6 +619,19 @@ def training_page(model, scaler, label_encoder):
                     display_training_method = st.session_state.get('training_method', training_method)
                     display_model_description = st.session_state.get('model_description', model_description)
                     
+                    # Validate model name using session state
+                    if display_model_name:
+                            # Check for invalid characters
+                            invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+                            has_invalid = any(char in display_model_name for char in invalid_chars)
+                            
+                            if has_invalid:
+                                st.error(f"**Invalid characters in model name!** Please avoid: {', '.join(invalid_chars)}")
+                            elif len(display_model_name.strip()) == 0:
+                                st.error("**Model name cannot be empty!**")
+                            else:
+                                st.success(f"**Model name valid:** `{display_model_name}`")
+                    
                     # Hyperparameter Tweaking Section
                     st.markdown("### Hyperparameter Tweaking")
                     st.markdown("Fine-tune model parameters for optimal performance:")
@@ -850,19 +881,6 @@ def training_page(model, scaler, label_encoder):
                     # Update session state with hyperparameters
                     st.session_state['hyperparameters'] = hyperparams
                     
-                    # Validate model name using session state
-                    if display_model_name:
-                            # Check for invalid characters
-                            invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
-                            has_invalid = any(char in display_model_name for char in invalid_chars)
-                            
-                            if has_invalid:
-                                st.error(f"**Invalid characters in model name!** Please avoid: {', '.join(invalid_chars)}")
-                            elif len(display_model_name.strip()) == 0:
-                                st.error("**Model name cannot be empty!**")
-                            else:
-                                st.success(f"**Model name valid:** `{display_model_name}`")
-                        
                     # Training button
                     data_prepared = st.session_state.get('data_prepared', False)
                     model_name_valid = display_model_name and not has_invalid and len(display_model_name.strip()) > 0
@@ -1103,9 +1121,9 @@ def training_page(model, scaler, label_encoder):
                                     accuracy_new = accuracy_score(y_test, final_pred)
                                     roc_auc_new = roc_auc_score(y_test, final_pred_proba)
 
-                                    # Step 11: Save model
-                                    status_text.text("Saving trained model...")
-                                    progress_bar.progress(98)
+                                    # Step 11: Complete training
+                                    progress_bar.progress(100)
+                                    status_text.text("Training completed!")
 
                                     # Create metadata
                                     metadata = {
@@ -1122,42 +1140,39 @@ def training_page(model, scaler, label_encoder):
                                         'classes': ['CONFIRMED', 'FALSE_POSITIVE']
                                     }
 
-                                    # Save model using model_manager
-                                    success = save_model(final_model, scaler_new, label_encoder_new, metadata, final_model_name)
+                                    # Store trained model in session state for download/save options
+                                    st.session_state['trained_model'] = final_model
+                                    st.session_state['trained_scaler'] = scaler_new
+                                    st.session_state['trained_label_encoder'] = label_encoder_new
+                                    st.session_state['trained_metadata'] = metadata
+                                    st.session_state['training_completed'] = True
 
-                                    if success:
-                                        # Step 12: Complete
-                                        progress_bar.progress(100)
-                                        status_text.text("Training completed!")
+                                    # Show results
+                                    st.success("**Model trained successfully!**")
 
-                                        # Show results
-                                        st.success("**Model trained and saved successfully!**")
+                                    # Show training results
+                                    st.markdown("#### Training Results")
 
-                                        # Show training results
-                                        st.markdown("#### Training Results")
+                                    if final_model_description:
+                                        st.info(f"**Description:** {final_model_description}")
 
-                                        if final_model_description:
-                                            st.info(f"**Description:** {final_model_description}")
+                                    col1, col2, col3 = st.columns(3)
 
-                                        col1, col2, col3 = st.columns(3)
+                                    with col1:
+                                        st.metric("New Accuracy", f"{accuracy_new*100:.2f}%")
 
-                                        with col1:
-                                            st.metric("New Accuracy", f"{accuracy_new*100:.2f}%")
+                                    with col2:
+                                        st.metric("ROC-AUC", f"{roc_auc_new:.4f}")
 
-                                        with col2:
-                                            st.metric("ROC-AUC", f"{roc_auc_new:.4f}")
+                                    with col3:
+                                        st.metric("Training Data", f"{len(combined_data):,}", delta=f"+{len(prepared_data):,} New Records")
 
-                                        with col3:
-                                            st.metric("Training Data", f"{len(combined_data):,}", delta=f"+{len(prepared_data):,} New Records")
-
-                                        # Update session state
-                                        st.session_state['training_completed'] = True
-                                        st.session_state['new_model_name'] = final_model_name
-
-                                        st.success(f"**Model '{final_model_name}' is now available in the Model Management section!**")
-
-                                    else:
-                                        st.error("**Failed to save model!** Please check file permissions.")
+                                    # Store model data in session state for persistent access
+                                    st.session_state['trained_model'] = final_model
+                                    st.session_state['trained_scaler'] = scaler_new
+                                    st.session_state['trained_label_encoder'] = label_encoder_new
+                                    st.session_state['trained_metadata'] = metadata
+                                    st.session_state['training_completed'] = True
 
                                 except Exception as e:
                                     st.error(f"**Training failed:** {str(e)}")
@@ -1168,6 +1183,44 @@ def training_page(model, scaler, label_encoder):
                 st.markdown("Please check your CSV format and try again.")
     
     st.markdown("---")
+    
+    # Show model actions if training is completed
+    if st.session_state.get('training_completed', False):
+        st.markdown("## Trained Model Actions")
+        
+        # Get model data from session state
+        trained_model = st.session_state.get('trained_model')
+        trained_scaler = st.session_state.get('trained_scaler')
+        trained_label_encoder = st.session_state.get('trained_label_encoder')
+        trained_metadata = st.session_state.get('trained_metadata')
+        
+        if trained_model is not None and trained_metadata is not None:
+            st.success("**Model training completed successfully!**")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Download button
+                model_buffer = create_model_download(trained_model, trained_scaler, trained_label_encoder, trained_metadata)
+                st.download_button(
+                    label="📥 Download Model (.pkl)",
+                    data=model_buffer,
+                    file_name=f"{trained_metadata.get('name', 'model')}.pkl",
+                    mime="application/octet-stream",
+                    help="Download the trained model as a pickle (.pkl) file"
+                )
+            
+            with col2:
+                # Save to models button
+                if st.button("💾 Save to Models", help="Save the model to the automatic models list"):
+                    success = save_model(trained_model, trained_scaler, trained_label_encoder, trained_metadata, trained_metadata.get('name', 'model'))
+                    if success:
+                        st.success(f"**Model '{trained_metadata.get('name', 'model')}' saved to Models list!**")
+                        st.info("You can now find it in the Model Management section.")
+                    else:
+                        st.error("**Failed to save model!** Please check file permissions.")
+        
+        st.markdown("---")
     
     # Show training notes
     st.markdown("## Training Notes")
