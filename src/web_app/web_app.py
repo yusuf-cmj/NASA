@@ -988,10 +988,20 @@ def models_page():
     
     st.markdown(f"### 📋 Available Models ({len(available_models)})")
     
+    # Show currently active model
+    active_model = st.session_state.get('active_model', 'NebulaticAI')
+    st.info(f"**Currently Active Model:** {active_model}")
+    
     # Display models in cards
     for i, model in enumerate(available_models):
-        with st.expander(f"🤖 {model['name']} - {model['accuracy']*100:.2f}% Accuracy", expanded=True):
-            col1, col2, col3 = st.columns([3, 1, 1])
+        # Show if this model is currently active
+        is_active = model['name'] == active_model
+        expander_title = f"{model['name']} - {model['accuracy']*100:.2f}% Accuracy"
+        if is_active:
+            expander_title += " ✅ (ACTIVE)"
+        
+        with st.expander(expander_title, expanded=True):
+            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
             
             with col1:
                 st.write(f"**Description:** {model['description'] or 'No description'}")
@@ -999,20 +1009,33 @@ def models_page():
                 st.write(f"**ROC-AUC:** {model['roc_auc']:.4f}")
             
             with col2:
-                if st.button(f"🔄 Load", key=f"load_{i}"):
+                if st.button(f"Load", key=f"load_{i}"):
                     model_obj, scaler, encoder, metadata = load_model_by_name(model['filename'])
                     if model_obj is not None:
                         st.session_state['active_model'] = model['name']
                         st.session_state['loaded_model'] = model_obj
                         st.session_state['loaded_scaler'] = scaler
                         st.session_state['loaded_encoder'] = encoder
-                        st.success(f"✅ Loaded '{model['name']}'")
+                        st.success(f"Loaded '{model['name']}'")
                         st.rerun()
                     else:
-                        st.error("❌ Failed to load model")
+                        st.error("Failed to load model")
             
             with col3:
-                if st.button(f"🗑️ Delete", key=f"delete_{i}", type="secondary"):
+                if st.button(f"Use", key=f"use_{i}", type="primary", disabled=is_active):
+                    model_obj, scaler, encoder, metadata = load_model_by_name(model['filename'])
+                    if model_obj is not None:
+                        st.session_state['active_model'] = model['name']
+                        st.session_state['loaded_model'] = model_obj
+                        st.session_state['loaded_scaler'] = scaler
+                        st.session_state['loaded_encoder'] = encoder
+                        st.success(f"Now using '{model['name']}' for predictions")
+                        st.rerun()
+                    else:
+                        st.error("Failed to load model")
+            
+            with col4:
+                if st.button(f"Delete", key=f"delete_{i}", type="secondary", disabled=is_active):
                     if st.session_state.get(f"confirm_delete_{i}", False):
                         # Actually delete the model
                         current_dir = os.path.dirname(os.path.abspath(__file__))

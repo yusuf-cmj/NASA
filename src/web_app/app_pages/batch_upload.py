@@ -217,6 +217,11 @@ def batch_upload_page(model, scaler, label_encoder):
     _add_table_css()
     
     st.markdown("# Batch Upload & Processing")
+    
+    # Show active model indicator
+    active_model = st.session_state.get('active_model', 'NebulaticAI')
+    st.info(f"**Using Model:** {active_model} | [Switch Model](?page=models)")
+    
     st.markdown("Upload CSV files for bulk exoplanet candidate analysis")
     st.markdown("---")
     

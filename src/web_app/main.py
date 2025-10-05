@@ -48,55 +48,44 @@ def main():
     
     
     # Load models with loading indicator
-    with st.spinner("🔄 Loading AI models..."):
-        model, scaler, label_encoder, model_info = load_models()
+    with st.spinner("Loading AI models..."):
+        # Check if there's an active model in session state
+        active_model_name = st.session_state.get('active_model', 'NebulaticAI')
+        loaded_model = st.session_state.get('loaded_model')
+        loaded_scaler = st.session_state.get('loaded_scaler')
+        loaded_encoder = st.session_state.get('loaded_encoder')
+        
+        if loaded_model is not None and loaded_scaler is not None and loaded_encoder is not None:
+            # Use loaded model from session state
+            model, scaler, label_encoder = loaded_model, loaded_scaler, loaded_encoder
+            model_info = {'name': active_model_name, 'type': 'Binary Classification', 'features': 6, 'classes': ['CONFIRMED', 'FALSE_POSITIVE']}
+        else:
+            # Load default model
+            model, scaler, label_encoder, model_info = load_models()
+            # Set default as active if not set
+            if 'active_model' not in st.session_state:
+                st.session_state['active_model'] = 'NebulaticAI'
+                st.session_state['loaded_model'] = model
+                st.session_state['loaded_scaler'] = scaler
+                st.session_state['loaded_encoder'] = label_encoder
     
     if model is None:
         st.error("Failed to load models. Please check the model files.")
         st.stop()
     
     # Show model info in sidebar
-    with st.sidebar.expander("Model Info"):
-        # Get available models
-        available_models = get_available_models()
+    with st.sidebar.expander("Active Model"):
+        st.write(f"**Current Model:** {active_model_name}")
+        if model_info:
+            st.write(f"**Type:** {model_info.get('type', 'Binary Classification')}")
+            st.write(f"**Features:** {model_info.get('features', 6)}")
+            st.write(f"**Classes:** {model_info.get('classes', ['CONFIRMED', 'FALSE_POSITIVE'])}")
+            st.write("**Status:** Ready")
         
-        if available_models:
-            # Model selection
-            model_names = [f"{m['name']} ({m['accuracy']*100:.1f}%)" for m in available_models]
-            selected_model_idx = st.selectbox(
-                "Select Model:",
-                range(len(model_names)),
-                format_func=lambda x: model_names[x]
-            )
-            
-            if selected_model_idx is not None:
-                selected_model = available_models[selected_model_idx]
-                
-                # Load selected model
-                if st.button("🔄 Load Selected Model"):
-                    model, scaler, encoder, metadata = load_model_by_name(selected_model['filename'])
-                    if model is not None:
-                        st.session_state['active_model'] = selected_model['name']
-                        st.session_state['loaded_model'] = model
-                        st.session_state['loaded_scaler'] = scaler
-                        st.session_state['loaded_encoder'] = encoder
-                        st.success(f"Loaded '{selected_model['name']}'")
-                        st.rerun()
-                
-                # Show model details
-                st.write(f"**Model:** {selected_model['name']}")
-                st.write(f"**Algorithm:** Stacking Ensemble")
-                st.write(f"**Accuracy:** {selected_model['accuracy']*100:.2f}%")
-                st.write(f"**ROC-AUC:** {selected_model['roc_auc']:.4f}")
-                st.write(f"**Created:** {selected_model['created_at'][:10]}")
-                if selected_model['description']:
-                    st.write(f"**Description:** {selected_model['description']}")
-        else:
-            if model_info:
-                st.write(f"**Type:** {model_info['type']}")
-                st.write(f"**Features:** {model_info['features']}")
-                st.write(f"**Classes:** {model_info['classes']}")
-                st.write("**Status:** Ready")
+        # Quick model switch
+        if st.button("Switch Model", help="Go to Model Management to switch models"):
+            st.query_params.page = "models"
+            st.rerun()
     
     # Sidebar navigation - URL Routing Sistemi
     st.sidebar.markdown("## NASA Exoplanet Detection")

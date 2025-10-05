@@ -12,27 +12,39 @@ from config.settings import MODEL_DIR, MODEL_FILES
 
 def get_available_models():
     """Get list of available models"""
-    if not os.path.exists(MODEL_DIR):
-        return []
-    
     models = []
-    for file in os.listdir(MODEL_DIR):
-        if file.endswith('_metadata.pkl'):
-            try:
-                metadata = joblib.load(os.path.join(MODEL_DIR, file))
-                models.append({
-                    'filename': file.replace('_metadata.pkl', ''),
-                    'name': metadata.get('name', file.replace('_metadata.pkl', '')),
-                    'description': metadata.get('description', ''),
-                    'created_at': metadata.get('created_at', ''),
-                    'accuracy': metadata.get('accuracy', 0),
-                    'roc_auc': metadata.get('roc_auc', 0)
-                })
-            except:
-                continue
     
-    # Sort by creation date (newest first)
-    models.sort(key=lambda x: x['created_at'], reverse=True)
+    # Add default NebulaticAI model first
+    models.append({
+        'filename': 'default_nebulaticai',
+        'name': 'NebulaticAI',
+        'description': 'Default NASA Exoplanet Detection Model - Binary Stacking Ensemble',
+        'created_at': '2024-01-01T00:00:00',
+        'accuracy': 0.8821,
+        'roc_auc': 0.9448,
+        'is_default': True
+    })
+    
+    # Add custom trained models
+    if os.path.exists(MODEL_DIR):
+        for file in os.listdir(MODEL_DIR):
+            if file.endswith('_metadata.pkl'):
+                try:
+                    metadata = joblib.load(os.path.join(MODEL_DIR, file))
+                    models.append({
+                        'filename': file.replace('_metadata.pkl', ''),
+                        'name': metadata.get('name', file.replace('_metadata.pkl', '')),
+                        'description': metadata.get('description', ''),
+                        'created_at': metadata.get('created_at', ''),
+                        'accuracy': metadata.get('accuracy', 0),
+                        'roc_auc': metadata.get('roc_auc', 0),
+                        'is_default': False
+                    })
+                except:
+                    continue
+    
+    # Sort by creation date (newest first), but keep default first
+    models.sort(key=lambda x: (not x.get('is_default', False), x['created_at']), reverse=True)
     return models
 
 def load_models():
@@ -55,9 +67,13 @@ def load_models():
         
         # Model info
         model_info = {
+            'name': 'NebulaticAI',
             'type': 'Binary Classification',
             'features': 6,
-            'classes': ['CONFIRMED', 'FALSE_POSITIVE']
+            'classes': ['CONFIRMED', 'FALSE_POSITIVE'],
+            'accuracy': 0.8821,
+            'roc_auc': 0.9448,
+            'description': 'Default NASA Exoplanet Detection Model - Binary Stacking Ensemble'
         }
         
         return model, scaler, label_encoder, model_info
@@ -68,6 +84,10 @@ def load_models():
 
 def load_model_by_name(model_name):
     """Load model by name"""
+    # Handle default NebulaticAI model
+    if model_name == 'default_nebulaticai':
+        return load_models()
+    
     model_filename = model_name.replace(' ', '_').replace('/', '_')
     
     try:

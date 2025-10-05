@@ -16,6 +16,11 @@ def prediction_page(model, scaler, label_encoder):
     """Detailed prediction page with comprehensive inputs and outputs"""
     
     st.markdown("# Single Exoplanet Prediction")
+    
+    # Show active model indicator
+    active_model = st.session_state.get('active_model', 'NebulaticAI')
+    st.info(f"**Using Model:** {active_model} | [Switch Model](?page=models)")
+    
     st.markdown("Detailed analysis of individual exoplanet candidates")
     st.markdown("---")
     
