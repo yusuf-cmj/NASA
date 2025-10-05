@@ -62,7 +62,7 @@ def models_page():
                 if st.button(f"Delete", key=f"delete_{i}", type="secondary", disabled=is_active):
                     # Actually delete the model
                     current_dir = os.path.dirname(os.path.abspath(__file__))
-                    project_root = os.path.join(current_dir, '..', '..')
+                    project_root = os.path.join(current_dir, '..', '..', '..')
                     models_dir = os.path.join(project_root, 'data', 'models')
                     
                     try:
